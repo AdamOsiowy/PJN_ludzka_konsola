@@ -7,3 +7,4 @@ Program, który reaguje na polecenia napisane w konsoli w języku naturalnym (po
 - zamknięcie programu o podanej nazwie
 - otwarcie dokumentu o podanej nazwie
 - otwarcie w przeglądarce podanej strony internetowej
+- wyszukiwanie informacji w plikach
