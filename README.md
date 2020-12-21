@@ -8,3 +8,10 @@ Program, który reaguje na polecenia napisane w konsoli w języku naturalnym (po
 - otwarcie dokumentu o podanej nazwie
 - otwarcie w przeglądarce podanej strony internetowej
 - wyszukiwanie informacji w plikach
+- wyszukiwanie informacji w internecie
+- wykonywanie zrzutów ekranu
+- przycinanie zdjęć
+- pobranie filmiku z serwisu youtube
+- konwersja mp4 na mp3
+
+Program sterowany za pomocą głosu - biblioteka speech recognition (google)
