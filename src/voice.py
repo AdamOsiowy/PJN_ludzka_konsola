@@ -2,15 +2,25 @@ import speech_recognition as sr
 import winsound
 
 
-def recognizeVoice():
+def recognizeVoice(recognizer, audio):
+    try:
+        result = recognizer.recognize_google(audio, language='pl-PL')
+        return result
+    except LookupError:
+        return ''
+
+
+def startRecording():
     r = sr.Recognizer()
-    # print(sr.Microphone.list_microphone_names())
-    mic = sr.Microphone(device_index=1)
-    with mic as source:
-        audio = r.listen(source)
-    result = r.recognize_google(audio, language='pl-PL')
+    m = sr.Microphone(device_index=1)
+    global stop_listening
+    stop_listening = r.listen_in_background(m, recognizeVoice)
+
+
+def stopRecording():
+    global stop_listening
+    stop_listening()
     emitSignalOnFinished()
-    return result
 
 
 def emitSignalOnFinished():
