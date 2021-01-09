@@ -11,39 +11,46 @@ def tokenize(text):
 
 def checkIfContainOrder(text) -> bool:
     tokens = tokenize(text)
-    if tokens[0].tag_ == "IMPT":
-        return True
+    for tok in tokens:
+        if tok.tag_ == "IMPT":
+            return True
     return False
 
 
 def tagPartOfSpeech(tokens):
+    toks = [tok.text for tok in tokens]
     parts_of_speech = [tok.tag_ for tok in tokens]
-    return dict(zip(tokens, parts_of_speech))
+    return dict(zip(toks, parts_of_speech))
 
 
 def lematize(tokens):
     return [tok.lemma_ for tok in tokens]
 
 
-def removeStopWords(lemmas):
-    tokens = tokenize(' '.join(lemmas))
-    return [tok.text for tok in tokens if tok.is_stop is False]
+def removeStopWords(tokens):
+    return [tok for tok in tokens if tok.is_stop is False]
 
 
-def removePunctuationMarks(tokens):
-    return [re.sub(r'[?:!,.;]', r'', tok) for tok in tokens]
+def findOrderAndArgs(tokens):
+    order = ""
+    args = dict()
+    for i in range(len(tokens)):
+        if tokens[i].tag_ == "IMPT":
+            order = tokens[i]
+            tokens = tokens[i + 1:]
+            break
+    order = lematize([order])[0]
+    args = lematize(tokens)
+    args = tokenize(' '.join(args))
+    args = tagPartOfSpeech(args)
+    return order, args
 
 
 def getTaskAndArgs(text: str) -> dict:
     if checkIfContainOrder(text):
         tokens = tokenize(text)
-        lemmas = lematize(tokens)
-        withoutStopWords = removeStopWords(lemmas)
-        withoutPunctuationMarks = removePunctuationMarks(withoutStopWords)
-        new_tokens = tokenize(' '.join(withoutPunctuationMarks))
-        order = new_tokens[0]
-        new_tokens = new_tokens[1:]
-        parts_of_speech = tagPartOfSpeech(new_tokens)
-        return {'order': order, 'args': parts_of_speech}
+        withoutStopWords = removeStopWords(tokens)
+        order, args = findOrderAndArgs(withoutStopWords)
+        return {'order': order, 'args': args}
     else:
         return {'order': '', 'args': dict()}
