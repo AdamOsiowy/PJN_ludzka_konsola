@@ -2,16 +2,24 @@ import sys
 from win32api import GetSystemMetrics
 import os.path
 from PyQt5.Qt import Qt
-import interface
-import voice
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow
 import queue
 import threading
 import os
+import interface
+import voice
+import functions
+import text_processing
 
 SCREEN_SIZE = (0, 0, GetSystemMetrics(0), GetSystemMetrics(1))
 
+
+# doc1 = 'wyłącz Spotify'
+# doc2 = 'zmniejsz głośność odtwarzacza muzyki'
+# doc3 = 'wyszukaj w internecie informacje o drugiej wojnie światowej'
+# doc4 = 'zrób zrzut ekranu i zapisz go jako screenshot1'
+# doc5 = 'zapisać zapisz'
 
 class Worker(QtCore.QRunnable):
     def __init__(self, fn):
@@ -30,43 +38,69 @@ class MyWindow(QMainWindow):
 
     def __init__(self):
         super(QMainWindow, self).__init__()
-        self.ui = interface.Ui_MainWindow()
-        self.ui.setupUi(self)
-        self.ui.pushButton.clicked.connect(self.click)
-        self.counter = 0
 
         self.commands = queue.Queue()
+
+        self.ui = interface.Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.setFixedSize(300, 125)
+
+        self.icon = QtGui.QIcon()
+        self.icon.addPixmap(QtGui.QPixmap("../res/console.ico"), QtGui.QIcon.Normal,
+                            QtGui.QIcon.Off)
+        self.setWindowIcon(self.icon)
+
+        self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
         self.locker = threading.Lock()
+        self.stop_event = threading.Event()
+        self.threadPool = QtCore.QThreadPool()
+        self.workerMainThread = Worker(self.mainThread)
+        self.threadPool.start(self.workerMainThread)
 
-        self.threadpool = QtCore.QThreadPool()
-        self.worker = Worker(self.threadLoop)
-
-        self.threadpool.start(self.worker)
-
+        self.ui.pushButton.clicked.connect(self.buttonClick)
         self.labelChanged.connect(self.ui.lineEdit.setText)
 
-        self.event_stop = threading.Event()
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.commands.put('qqqq')  # to refresh main Thread while
+        self.stop_event.set()
 
-    def click(self):
-        self.ui.lineEdit.setText(voice.recognizeVoice())
+    def focusOutEvent(self, event):
+        self.setFocus(True)
+        self.activateWindow()
+        self.raise_()
+        self.show()
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_S:
-            self.ui.lineEdit.setText(str(self.counter))
-            self.counter += 1
+        if event.key() == Qt.Key_Q:
+            self.closeEvent(event)
 
-    def threadLoop(self):
-        while not self.event_stop.is_set():
-            self.insideThread()
+    def mainThread(self):
+        while not self.stop_event.is_set():
+            c = 'Uruchom Visual Studio Code'
+            tokens = text_processing.tokenize(c)
+            print(tokens)
+            print(text_processing.tagPartOfSpeech(tokens))
+            command = self.commands.get()
+            if command == 'qqqq':
+                continue
+            self.insideMainThread(command)
+            self.commands.task_done()
 
-    def insideThread(self):
-        for i in range(10):
-            print(i)
-            QtCore.QThread.sleep(1)
-        self.event_stop.set()
+    def insideMainThread(self, command):
+        command = command.lower()
+        task = text_processing.getTaskAndArgs(command)
+        functions.completeTask(task)
 
-    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        self.event_stop.set()
+    def buttonClick(self):
+        self.labelChanged.emit('')
+        self.ui.pushButton.setDisabled(True)
+        command = voice.recognizeVoice()
+        self.commands.put(command)
+        self.labelChanged.emit(command)
+        self.ui.pushButton.setDisabled(False)
 
 
 if __name__ == "__main__":
