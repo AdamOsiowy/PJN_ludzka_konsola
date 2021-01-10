@@ -40,9 +40,9 @@ def findOrderAndArgs(tokens):
             tokens = tokens[i + 1:]
             break
     order = lematize([order])[0]
-    args = lematize(tokens)
-    args = tokenize(' '.join(args))
-    args = tagPartOfSpeech(args)
+    # args = lematize(tokens)
+    # args = tokenize(' '.join(args))
+    args = tagPartOfSpeech(tokens)
     return order, args
 
 
