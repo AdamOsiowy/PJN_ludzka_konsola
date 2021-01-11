@@ -79,10 +79,6 @@ class MyWindow(QMainWindow):
 
     def mainThread(self):
         while not self.stop_event.is_set():
-            c = 'Uruchom Visual Studio Code'
-            tokens = text_processing.tokenize(c)
-            print(tokens)
-            print(text_processing.tagPartOfSpeech(tokens))
             command = self.commands.get()
             if command == 'qqqq':
                 continue
