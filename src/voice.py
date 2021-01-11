@@ -7,7 +7,7 @@ def recognizeVoice():
     # print(sr.Microphone.list_microphone_names())
     mic = sr.Microphone(device_index=1)
     with mic as source:
-        r.adjust_for_ambient_noise(source, duration=1)
+        # r.adjust_for_ambient_noise(source, duration=1)
         audio = r.record(source, duration=4)
     try:
         result = r.recognize_google(audio, language='pl-PL')
